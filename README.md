@@ -15,6 +15,8 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
         ├── Kibana (puerto 5601)
         ├── Logstash
         └── Motor de detección Python
+                    ↓
+            Dashboard React (localhost:5173)
 
 ## Stack tecnológico
 
@@ -24,7 +26,7 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
 | Almacenamiento | Elasticsearch 8.x |
 | Visualización base | Kibana |
 | Detección de anomalías | Python 3 |
-| Dashboard propio | React (en desarrollo) |
+| Dashboard propio | React + Vite + Axios |
 | Infraestructura | VirtualBox + Ubuntu Server 22.04 |
 
 ## Estructura del proyecto
@@ -32,19 +34,29 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
     siem-project/
     ├── infrastructure/
     │   └── filebeat/
-    │       └── filebeat.yml        # Configuración del agente de logs
+    │       └── filebeat.yml            # Configuración del agente de logs
     ├── detection/
-    │   ├── rules/                  # Reglas de detección individuales
-    │   │   ├── brute_force.py      # Fuerza bruta SSH
-    │   │   ├── login_exitoso.py    # Login exitoso
-    │   │   ├── sudo.py             # Uso de sudo
-    │   │   ├── horario_sospechoso.py  # Login fuera de horario
-    │   │   └── nuevo_usuario.py    # Nuevo usuario creado
-    │   └── engine.py               # Motor principal de detección
-    ├── dashboard/                  # Frontend React (próximamente)
+    │   ├── rules/                      # Reglas de detección individuales
+    │   │   ├── brute_force.py          # Fuerza bruta SSH
+    │   │   ├── login_exitoso.py        # Login exitoso
+    │   │   ├── sudo.py                 # Uso de sudo
+    │   │   ├── horario_sospechoso.py   # Login fuera de horario
+    │   │   └── nuevo_usuario.py        # Nuevo usuario creado
+    │   └── engine.py                   # Motor principal de detección
+    ├── dashboard/                      # Frontend React
+    │   └── src/
+    │       ├── components/
+    │       │   ├── Header/             # Cabecera con estado de conexión
+    │       │   ├── StatsGrid/          # Tarjetas de estadísticas
+    │       │   └── EventsList/         # Lista de eventos en tiempo real
+    │       ├── config/                 # Constantes del proyecto
+    │       ├── services/               # Capa de conexión con Elasticsearch
+    │       ├── hooks/                  # Hooks personalizados de React
+    │       ├── utils/                  # Funciones auxiliares
+    │       └── styles/                 # Estilos globales
     └── docs/
-        ├── architecture.md         # Arquitectura detallada del entorno
-        └── setup.md                # Guía de instalación
+        ├── architecture.md             # Arquitectura detallada del entorno
+        └── setup.md                    # Guía de instalación
 
 ## Reglas de detección implementadas
 
@@ -54,6 +66,16 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
 - [x] Login fuera de horario — acceso entre las 02:00 y las 06:00
 - [x] Nuevo usuario creado en el sistema
 - [ ] Puerto nuevo abierto — servicio nuevo detectado en la máquina objetivo
+
+## Dashboard
+
+Dashboard web construido en React que consume la API REST de Elasticsearch para mostrar eventos en tiempo real. Se actualiza automáticamente cada 10 segundos y clasifica los eventos por severidad.
+
+Características:
+- Estadísticas globales de la última hora
+- Lista de últimos 20 eventos con severidad visual
+- Actualización automática en tiempo real
+- Indicador de estado de conexión con Elasticsearch
 
 ## Cómo reproducir el entorno
 
@@ -67,7 +89,7 @@ Ver `docs/setup.md` para instrucciones detalladas.
 | Stack ELK | ✅ Completado |
 | Filebeat | ✅ Completado |
 | Reglas de detección Python | ✅ Completado |
-| Dashboard React | ⏳ Pendiente |
+| Dashboard React | ✅ Completado |
 | Migración Docker | ⏳ Pendiente |
 
 ## Autor
