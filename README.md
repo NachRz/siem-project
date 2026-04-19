@@ -35,6 +35,11 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
     │       └── filebeat.yml        # Configuración del agente de logs
     ├── detection/
     │   ├── rules/                  # Reglas de detección individuales
+    │   │   ├── brute_force.py      # Fuerza bruta SSH
+    │   │   ├── login_exitoso.py    # Login exitoso
+    │   │   ├── sudo.py             # Uso de sudo
+    │   │   ├── horario_sospechoso.py  # Login fuera de horario
+    │   │   └── nuevo_usuario.py    # Nuevo usuario creado
     │   └── engine.py               # Motor principal de detección
     ├── dashboard/                  # Frontend React (próximamente)
     └── docs/
@@ -46,8 +51,8 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
 - [x] Fuerza bruta SSH — más de 5 intentos fallidos en 1 minuto
 - [x] Login exitoso detectado
 - [x] Uso de sudo detectado
-- [ ] Login fuera de horario — acceso entre las 02:00 y las 06:00
-- [ ] Escalada de privilegios — uso de sudo por usuario no habitual
+- [x] Login fuera de horario — acceso entre las 02:00 y las 06:00
+- [x] Nuevo usuario creado en el sistema
 - [ ] Puerto nuevo abierto — servicio nuevo detectado en la máquina objetivo
 
 ## Cómo reproducir el entorno
