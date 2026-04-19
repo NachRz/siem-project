@@ -43,7 +43,9 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
 
 ## Reglas de detección implementadas
 
-- [ ] Fuerza bruta SSH — más de 5 intentos fallidos en 1 minuto
+- [x] Fuerza bruta SSH — más de 5 intentos fallidos en 1 minuto
+- [x] Login exitoso detectado
+- [x] Uso de sudo detectado
 - [ ] Login fuera de horario — acceso entre las 02:00 y las 06:00
 - [ ] Escalada de privilegios — uso de sudo por usuario no habitual
 - [ ] Puerto nuevo abierto — servicio nuevo detectado en la máquina objetivo
@@ -59,7 +61,7 @@ Ver `docs/setup.md` para instrucciones detalladas.
 | Infraestructura VMs | ✅ Completado |
 | Stack ELK | ✅ Completado |
 | Filebeat | ✅ Completado |
-| Reglas de detección Python | 🔄 En progreso |
+| Reglas de detección Python | ✅ Completado |
 | Dashboard React | ⏳ Pendiente |
 | Migración Docker | ⏳ Pendiente |
 
