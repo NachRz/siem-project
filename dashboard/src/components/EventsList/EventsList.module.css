@@ -1,0 +1,108 @@
+/* Contenedor principal de la lista de eventos */
+.container {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+/* Título de la sección con contador de eventos */
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #f1f5f9;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #334155;
+}
+
+/* Badge pequeño que muestra el número total de eventos */
+.count {
+  background: #334155;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+/* Lista scrolleable de eventos con altura máxima */
+.list {
+  max-height: 500px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Cada fila de evento: timestamp - mensaje - badge de severidad */
+.item {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #0f172a;
+  border-left: 3px solid #64748b;
+  transition: background 0.2s;
+  font-size: 0.9rem;
+}
+
+/* Efecto hover para destacar el evento sobre el que pasa el cursor */
+.item:hover {
+  background: #1a2436;
+}
+
+/* Colores de borde según severidad del evento */
+.item.alta { border-left-color: #ef4444; }   /* Rojo - crítico */
+.item.media { border-left-color: #f59e0b; }  /* Amarillo - aviso */
+.item.baja { border-left-color: #10b981; }   /* Verde - informativo positivo */
+.item.info { border-left-color: #3b82f6; }   /* Azul - informativo neutro */
+
+/* Timestamp del evento, en fuente monoespaciada para mejor legibilidad */
+.timestamp {
+  color: #94a3b8;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+/* Mensaje del log, truncado con elipsis si es muy largo */
+.message {
+  color: #e2e8f0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Badge de severidad a la derecha de cada evento */
+.badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Colores de los badges según severidad */
+.badge_alta { background: #7f1d1d; color: #fecaca; }
+.badge_media { background: #78350f; color: #fed7aa; }
+.badge_baja { background: #064e3b; color: #a7f3d0; }
+.badge_info { background: #1e3a8a; color: #bfdbfe; }
+
+/* Estado vacío cuando no hay eventos que mostrar */
+.empty {
+  color: #64748b;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Mensaje de error cuando falla la conexión con Elasticsearch */
+.error {
+  color: #fca5a5;
+  text-align: center;
+  padding: 2rem;
+  background: #450a0a;
+  border-radius: 8px;
+}

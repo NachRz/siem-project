@@ -1,0 +1,50 @@
+/* Grid responsive de 4 columnas para las tarjetas de estadísticas */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* Estilo base de cada tarjeta con borde izquierdo coloreado */
+.card {
+  background: #1e293b;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid #64748b;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+/* Efecto hover para dar sensación de interactividad */
+.card:hover {
+  transform: translateY(-2px);
+}
+
+/* Colores del borde según el nivel de severidad */
+.card.alta { border-left-color: #ef4444; }    /* rojo - alertas críticas */
+.card.media { border-left-color: #f59e0b; }   /* ámbar - alertas moderadas */
+.card.baja { border-left-color: #10b981; }    /* verde - eventos normales */
+.card.neutral { border-left-color: #64748b; } /* gris - información general */
+
+/* Etiqueta de la métrica en mayúsculas con letter-spacing */
+.label {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Número grande y destacado */
+.value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+/* Responsive: en móvil pasa a 2 columnas */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

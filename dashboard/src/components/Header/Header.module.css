@@ -1,0 +1,63 @@
+/* Cabecera con layout flex: título a la izquierda, estado a la derecha */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #334155;
+  margin-bottom: 2rem;
+}
+
+/* Zona del branding: icono + textos */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Icono del escudo */
+.icon {
+  font-size: 2.5rem;
+}
+
+/* Título principal del dashboard */
+.title {
+  font-size: 1.75rem;
+  color: #f1f5f9;
+  font-weight: 600;
+}
+
+/* Subtítulo descriptivo bajo el título */
+.subtitle {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+/* Pill de estado con forma redondeada */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #1e293b;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* Punto verde indicador de conexión activa con efecto glow */
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse 2s infinite;
+}
+
+/* Animación de pulso para el indicador de estado */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
