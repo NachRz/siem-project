@@ -1,0 +1,40 @@
+/* Reset universal para eliminar márgenes y paddings por defecto del navegador */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Estilos base del documento: fondo oscuro y tipografía del sistema */
+html, body {
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+}
+
+/* Contenedor raíz de React ocupa toda la altura disponible */
+#root {
+  min-height: 100vh;
+}
+
+/* Personalización de la barra de scroll para el tema oscuro */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Fondo del track (zona por donde se desplaza el thumb) */
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+/* Thumb: la parte arrastrable de la barra de scroll */
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+/* Thumb al pasar el ratón, ligeramente más claro */
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
