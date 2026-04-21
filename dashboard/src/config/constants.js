@@ -12,3 +12,6 @@ export const TIME_RANGE = 'now-1h'
 
 // Número máximo de eventos mostrados en la lista
 export const MAX_EVENTS_DISPLAY = 20
+
+// Índice donde el motor Python guarda las alertas generadas
+export const ES_ALERTAS_INDEX = 'alertas-siem'

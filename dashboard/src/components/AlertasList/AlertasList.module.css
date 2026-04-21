@@ -1,0 +1,120 @@
+/* Contenedor principal de la sección de alertas */
+.container {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Título de la sección con contador de alertas totales */
+.title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #f1f5f9;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #334155;
+}
+
+/* Badge con el número total de alertas persistidas */
+.count {
+  background: #334155;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+/* Contenedor scrolleable con las alertas */
+.list {
+  max-height: 400px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Tarjeta individual de alerta con borde lateral coloreado */
+.alerta {
+  background: #0f172a;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #64748b;
+  transition: transform 0.15s ease;
+}
+
+.alerta:hover {
+  transform: translateX(4px);
+}
+
+/* Colores según severidad de la alerta */
+.alerta.alta { border-left-color: #ef4444; }
+.alerta.media { border-left-color: #f59e0b; }
+.alerta.baja { border-left-color: #10b981; }
+
+/* Cabecera de la alerta con tipo y badge de severidad */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+/* Nombre del tipo de alerta en mayúsculas y destacado */
+.tipo {
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Badge de severidad a la derecha */
+.badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Colores de fondo del badge según severidad */
+.badge_alta { background: #7f1d1d; color: #fecaca; }
+.badge_media { background: #78350f; color: #fed7aa; }
+.badge_baja { background: #064e3b; color: #a7f3d0; }
+
+/* Mensaje descriptivo de la alerta, con salto de línea natural */
+.mensaje {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* Timestamp en la parte inferior con fuente monoespaciada */
+.timestamp {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-family: 'Courier New', monospace;
+}
+
+/* Estados vacíos y de error */
+.empty {
+  color: #64748b;
+  text-align: center;
+  padding: 2rem;
+}
+
+.error {
+  color: #fca5a5;
+  text-align: center;
+  padding: 2rem;
+  background: #450a0a;
+  border-radius: 8px;
+}
