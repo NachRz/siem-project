@@ -12,6 +12,8 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
         └── Filebeat →
     siem-server (192.168.57.5)
         ├── Elasticsearch (puerto 9200)
+        │   ├── Índice filebeat-*        (logs crudos del sistema)
+        │   └── Índice alertas-siem      (alertas generadas por el motor)
         ├── Kibana (puerto 5601)
         ├── Logstash
         └── Motor de detección Python
@@ -38,17 +40,18 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
     ├── detection/
     │   ├── rules/                      # Reglas de detección individuales
     │   │   ├── brute_force.py          # Fuerza bruta SSH
-    │   │   ├── login_exitoso.py        # Login exitoso
+    │   │   ├── login_exitoso.py        # Login exitoso desde IP sospechosa
     │   │   ├── sudo.py                 # Uso de sudo
     │   │   ├── horario_sospechoso.py   # Login fuera de horario
     │   │   └── nuevo_usuario.py        # Nuevo usuario creado
-    │   └── engine.py                   # Motor principal de detección
+    │   └── engine.py                   # Motor principal que guarda alertas en Elasticsearch
     ├── dashboard/                      # Frontend React
     │   └── src/
     │       ├── components/
     │       │   ├── Header/             # Cabecera con estado de conexión
     │       │   ├── StatsGrid/          # Tarjetas de estadísticas
-    │       │   └── EventsList/         # Lista de eventos en tiempo real
+    │       │   ├── AlertasList/        # Alertas generadas por el motor
+    │       │   └── EventsList/         # Lista de eventos crudos en tiempo real
     │       ├── config/                 # Constantes del proyecto
     │       ├── services/               # Capa de conexión con Elasticsearch
     │       ├── hooks/                  # Hooks personalizados de React
@@ -61,20 +64,28 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
 ## Reglas de detección implementadas
 
 - [x] Fuerza bruta SSH — más de 5 intentos fallidos en 1 minuto
-- [x] Login exitoso detectado
+- [x] Login exitoso desde IP fuera de la red de confianza
 - [x] Uso de sudo detectado
 - [x] Login fuera de horario — acceso entre las 02:00 y las 06:00
 - [x] Nuevo usuario creado en el sistema
 - [ ] Puerto nuevo abierto — servicio nuevo detectado en la máquina objetivo
 
+## Sistema de alertas
+
+Las alertas generadas por el motor de detección Python se persisten automáticamente en un índice dedicado de Elasticsearch (`alertas-siem`). Esto permite:
+
+- Histórico completo de todas las alertas detectadas
+- Consulta desde el dashboard web propio
+- Análisis forense posterior de incidentes
+
 ## Dashboard
 
-Dashboard web construido en React que consume la API REST de Elasticsearch para mostrar eventos en tiempo real. Se actualiza automáticamente cada 10 segundos y clasifica los eventos por severidad.
+Dashboard web construido en React que consume la API REST de Elasticsearch para mostrar en tiempo real tanto los eventos crudos del sistema como las alertas procesadas por el motor de detección. Se actualiza automáticamente cada 10 segundos.
 
-Características:
+Secciones del dashboard:
 - Estadísticas globales de la última hora
-- Lista de últimos 20 eventos con severidad visual
-- Actualización automática en tiempo real
+- Alertas de seguridad generadas por el motor Python
+- Lista de últimos eventos del sistema con severidad visual
 - Indicador de estado de conexión con Elasticsearch
 
 ## Cómo reproducir el entorno
@@ -89,6 +100,7 @@ Ver `docs/setup.md` para instrucciones detalladas.
 | Stack ELK | ✅ Completado |
 | Filebeat | ✅ Completado |
 | Reglas de detección Python | ✅ Completado |
+| Persistencia de alertas en Elasticsearch | ✅ Completado |
 | Dashboard React | ✅ Completado |
 | Migración Docker | ⏳ Pendiente |
 
