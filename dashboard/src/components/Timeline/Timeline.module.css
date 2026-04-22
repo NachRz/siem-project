@@ -1,0 +1,38 @@
+/* Contenedor principal de la sección de gráfica temporal */
+.container {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Título de la sección */
+.title {
+  color: #f1f5f9;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #334155;
+}
+
+/* Contenedor del canvas de Chart.js con altura fija para que se vea bien */
+.chart {
+  position: relative;
+  height: 300px;
+}
+
+/* Mensaje cuando está cargando los datos */
+.empty {
+  color: #64748b;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Mensaje de error cuando falla la conexión */
+.error {
+  color: #fca5a5;
+  text-align: center;
+  padding: 2rem;
+  background: #450a0a;
+  border-radius: 8px;
+}

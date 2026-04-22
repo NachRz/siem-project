@@ -16,7 +16,7 @@ import styles from './StatsGrid.module.css'
 const StatsGrid = ({ stats }) => {
   return (
     <div className={styles.grid}>
-      <StatCard label="Total eventos (1h)" value={stats.total} severity="neutral" />
+      <StatCard label="Total eventos (5m)" value={stats.total} severity="neutral" />
       <StatCard label="Logins fallidos" value={stats.failed} severity="alta" />
       <StatCard label="Logins exitosos" value={stats.accepted} severity="baja" />
       <StatCard label="Uso de sudo" value={stats.sudo} severity="media" />
