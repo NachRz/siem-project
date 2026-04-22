@@ -1,31 +1,58 @@
+// Utilidades de severidad y estadísticas
+// Aplica deduplicación por PID solo en eventos SSH
+
 /**
- * Determina el nivel de severidad de un evento basándose en su mensaje
- * Se usa para colorear los eventos en la interfaz según su criticidad
- *
- * @param {string} message - Mensaje del log
- * @returns {string} Nivel de severidad: alta, media, baja o info
+ * Extrae el PID del proceso sshd del mensaje de log
+ * Solo sshd genera duplicados, sudo no los genera
+ */
+const PATRON_PID_SSHD = /sshd\[(\d+)\]/
+
+/**
+ * Clasifica un evento por severidad según su contenido
  */
 export const getSeverity = (message) => {
   if (!message) return 'info'
-  // Intentos de login fallidos → posible ataque de fuerza bruta
   if (message.includes('Failed password')) return 'alta'
-  // Uso de sudo → escalada de privilegios, requiere atención
   if (message.toLowerCase().includes('sudo')) return 'media'
-  // Logins exitosos → actividad normal pero relevante
   if (message.includes('Accepted password')) return 'baja'
   return 'info'
 }
 
 /**
- * Calcula las estadísticas agregadas de una lista de eventos
- * Cuenta ocurrencias de cada tipo de evento relevante
- *
- * @param {array} hits - Array de eventos de Elasticsearch
- * @returns {object} Contadores de cada tipo de evento
+ * Calcula las estadísticas agregadas de eventos
+ * - SSH: deduplica por PID para evitar contar duplicados del log
+ * - Sudo: cuenta directamente cada ejecución (COMMAND=)
  */
 export const calculateStats = (hits) => {
-  const failed = hits.filter(h => h._source.message?.includes('Failed password')).length
-  const accepted = hits.filter(h => h._source.message?.includes('Accepted password')).length
-  const sudo = hits.filter(h => h._source.message?.toLowerCase().includes('sudo')).length
-  return { failed, accepted, sudo }
+  const pidsFallidos = new Set()
+  const pidsAceptados = new Set()
+  let contadorSudo = 0
+
+  for (const hit of hits) {
+    const mensaje = hit._source.message
+    if (!mensaje) continue
+
+    // Sudo no tiene PID, lo contamos directamente
+    if (mensaje.includes('COMMAND=')) {
+      contadorSudo++
+      continue
+    }
+
+    // SSH sí tiene PID y puede duplicarse
+    const match = PATRON_PID_SSHD.exec(mensaje)
+    if (!match) continue
+    const pid = match[1]
+
+    if (mensaje.includes('Failed password')) {
+      pidsFallidos.add(pid)
+    } else if (mensaje.includes('Accepted password')) {
+      pidsAceptados.add(pid)
+    }
+  }
+
+  return {
+    failed: pidsFallidos.size,
+    accepted: pidsAceptados.size,
+    sudo: contadorSudo
+  }
 }
