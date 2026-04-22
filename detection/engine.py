@@ -6,7 +6,14 @@ from datetime import datetime
 import time
 
 # Importamos cada regla de detección como módulo independiente
-from rules import brute_force, login_exitoso, sudo, horario_sospechoso, nuevo_usuario
+from rules import (
+    brute_force,
+    login_exitoso,
+    sudo,
+    horario_sospechoso,
+    nuevo_usuario,
+    archivos_criticos
+)
 
 # Cliente de Elasticsearch apuntando al servidor SIEM
 es = Elasticsearch("http://192.168.57.5:9200")
@@ -55,4 +62,5 @@ if __name__ == "__main__":
         sudo.detectar(es, log_alerta)
         horario_sospechoso.detectar(es, log_alerta)
         nuevo_usuario.detectar(es, log_alerta)
+        archivos_criticos.detectar(es, log_alerta)
         time.sleep(30)
