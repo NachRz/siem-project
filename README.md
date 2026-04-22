@@ -79,8 +79,8 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
 - [x] Nuevo usuario creado en el sistema
 - [x] Modificación de archivos críticos — /etc/passwd, /etc/shadow, /etc/sudoers, etc.
 - [x] Puerto nuevo abierto — detección mediante snapshots periódicos
-- [ ] Comandos sospechosos — netcat, wget de binarios, chmod +x
-- [ ] Ráfaga de comandos sudo — posible script automatizado
+- [x] Comandos sospechosos — netcat, wget de binarios, chmod +x, base64 -d, /dev/tcp
+- [x] Ráfaga de comandos sudo — posible script automatizado
 
 ## Sistema de alertas
 
