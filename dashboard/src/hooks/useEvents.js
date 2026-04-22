@@ -1,32 +1,72 @@
-// Hook personalizado que gestiona la obtención de eventos desde Elasticsearch
-// Se actualiza automáticamente cada X segundos según la configuración global
+// Hook personalizado que gestiona eventos y estadísticas del dashboard
+// Los eventos se leen de la última hora y se deduplican por PID
+// Las stats se calculan sobre una ventana más corta (5 minutos)
 
 import { useState, useEffect } from 'react'
-import { fetchEvents } from '../services/elasticsearch'
+import { fetchEvents, fetchStatsEvents } from '../services/elasticsearch'
 import { calculateStats } from '../utils/severity'
 import { REFRESH_INTERVAL } from '../config/constants'
 
+// Patrón para extraer PID de sshd (solo SSH tiene duplicados en el log)
+const PATRON_PID_SSHD = /sshd\[(\d+)\]/
+
+/**
+ * Deduplica eventos SSH por PID para que cada intento real aparezca una sola vez
+ * Los eventos de sudo no se deduplican porque no generan duplicados en el log
+ */
+const deduplicarEventos = (hits) => {
+  const pidsVistos = new Set()
+  const resultado = []
+
+  for (const hit of hits) {
+    const mensaje = hit._source.message
+    const matchPid = PATRON_PID_SSHD.exec(mensaje)
+
+    // Si es un evento SSH, aplicamos deduplicación por PID
+    if (matchPid) {
+      const pid = matchPid[1]
+      // Creamos una clave que combina PID + tipo para poder distinguir
+      // varios eventos de la misma conexión SSH
+      let tipo = 'otro'
+      if (mensaje.includes('Failed password')) tipo = 'fallido'
+      else if (mensaje.includes('Accepted password')) tipo = 'exitoso'
+      else if (mensaje.includes('Invalid user')) tipo = 'invalid'
+
+      const clave = `${pid}-${tipo}`
+      if (pidsVistos.has(clave)) continue
+      pidsVistos.add(clave)
+    }
+
+    resultado.push(hit)
+  }
+
+  return resultado
+}
+
 export const useEvents = () => {
-  // Lista de eventos recuperados del índice de Filebeat
   const [events, setEvents] = useState([])
-  // Estadísticas agregadas calculadas a partir de los eventos
   const [stats, setStats] = useState({ total: 0, failed: 0, accepted: 0, sudo: 0 })
-  // Estado de carga inicial
   const [loading, setLoading] = useState(true)
-  // Posibles errores de conexión
   const [error, setError] = useState(null)
 
   /**
-   * Función que realiza la petición a Elasticsearch
-   * Se llama en el mount y en cada intervalo de refresco
+   * Carga eventos y estadísticas en paralelo desde Elasticsearch
+   * Aplica deduplicación a los eventos SSH para evitar duplicados del log
    */
   const loadEvents = async () => {
     try {
-      const hits = await fetchEvents()
-      setEvents(hits.hits)
+      const [eventsData, statsData] = await Promise.all([
+        fetchEvents(),
+        fetchStatsEvents()
+      ])
+
+      // Deduplicamos los eventos SSH antes de mostrarlos
+      const eventosLimpios = deduplicarEventos(eventsData.hits)
+
+      setEvents(eventosLimpios)
       setStats({
-        total: hits.total.value,
-        ...calculateStats(hits.hits)
+        total: statsData.total.value,
+        ...calculateStats(statsData.hits)
       })
       setError(null)
     } catch (err) {
@@ -37,20 +77,17 @@ export const useEvents = () => {
     }
   }
 
-  // Al montar el componente carga los eventos y arranca el refresco automático
+  // Carga inicial + refresco periódico automático
   useEffect(() => {
-    // Función interna que envuelve la carga inicial
     const init = async () => {
       await loadEvents()
     }
     init()
 
-    // Intervalo que refresca los eventos periódicamente
     const interval = setInterval(() => {
       loadEvents()
     }, REFRESH_INTERVAL)
 
-    // Limpieza del intervalo al desmontar para evitar memory leaks
     return () => clearInterval(interval)
   }, [])
 
