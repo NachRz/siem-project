@@ -102,7 +102,7 @@ def detectar(es, log_alerta):
         hubo_cambios = True
 
         mensaje = hit["_source"].get("message", "")
-        print(f"  [DEBUG archivos_criticos] Mensaje: {mensaje[:150]}")
+
 
         # Comprobamos si el comando afecta a algún archivo crítico
         archivo_afectado = None

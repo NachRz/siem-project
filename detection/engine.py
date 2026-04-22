@@ -12,7 +12,8 @@ from rules import (
     sudo,
     horario_sospechoso,
     nuevo_usuario,
-    archivos_criticos
+    archivos_criticos,
+    puertos_nuevos
 )
 
 # Cliente de Elasticsearch apuntando al servidor SIEM
@@ -63,4 +64,5 @@ if __name__ == "__main__":
         horario_sospechoso.detectar(es, log_alerta)
         nuevo_usuario.detectar(es, log_alerta)
         archivos_criticos.detectar(es, log_alerta)
+        puertos_nuevos.detectar(es, log_alerta)
         time.sleep(30)
