@@ -137,3 +137,64 @@ export const actualizarEstadoAlerta = async (alertaId, nuevoEstado) => {
   )
   return response.data
 }
+
+/**
+ * Comprueba si Elasticsearch está respondiendo
+ * @returns {boolean} true si responde correctamente
+ */
+export const checkElasticsearch = async () => {
+  try {
+    const response = await axios.get(`${ES_URL}/_cluster/health`, { timeout: 3000 })
+    return response.data.status === 'green' || response.data.status === 'yellow'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Comprueba si Filebeat está enviando eventos recientemente
+ * Considera "vivo" si hay al menos un evento en los últimos 2 minutos
+ * @returns {boolean} true si hay actividad reciente de Filebeat
+ */
+export const checkFilebeat = async () => {
+  try {
+    const response = await axios.post(`${ES_URL}/${ES_INDEX}/_search`, {
+      size: 1,
+      sort: [{ '@timestamp': 'desc' }],
+      query: {
+        range: {
+          '@timestamp': {
+            gte: 'now-2m'
+          }
+        }
+      }
+    }, { timeout: 3000 })
+    return response.data.hits.total.value > 0
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Comprueba si el motor Python está vivo usando su heartbeat
+ * El motor escribe un documento en motor-heartbeat cada 30s
+ * Si el último heartbeat tiene menos de 2 minutos, el motor está activo
+ */
+export const checkMotorPython = async () => {
+  try {
+    const response = await axios.post(`${ES_URL}/motor-heartbeat/_search`, {
+      size: 1,
+      sort: [{ '@timestamp': 'desc' }],
+      query: {
+        range: {
+          '@timestamp': {
+            gte: 'now-2m'
+          }
+        }
+      }
+    }, { timeout: 3000 })
+    return response.data.hits.total.value > 0
+  } catch {
+    return false
+  }
+}
