@@ -93,7 +93,11 @@ function App() {
 
       {/* Sección de alertas con filtros y gestión de estados */}
       <div style={{ background: '#1e293b', borderRadius: '12px', padding: '1.5rem', marginBottom: '2rem' }}>
-        <AlertasFilters filtros={filtros} onCambiarFiltro={setFiltros} />
+        <AlertasFilters
+          filtros={filtros}
+          onCambiarFiltro={setFiltros}
+          alertas={alertasFiltradas}
+        />
         <AlertasList
           alertas={alertasFiltradas}
           total={alertasFiltradas.length}

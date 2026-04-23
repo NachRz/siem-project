@@ -1,13 +1,13 @@
 // Componente de filtros para las alertas
 // Permite filtrar por severidad, estado, tipo y búsqueda de texto
-// Los filtros se aplican en el cliente sobre las alertas ya cargadas
+// También incluye el botón de exportación a PDF del informe filtrado
 
 import styles from './AlertasFilters.module.css'
+import { generarInformePDF } from '../../utils/pdfExport'
 
-const AlertasFilters = ({ filtros, onCambiarFiltro }) => {
+const AlertasFilters = ({ filtros, onCambiarFiltro, alertas }) => {
   /**
    * Handler genérico que actualiza un filtro concreto
-   * Mantiene el resto de filtros intactos
    */
   const handleCambio = (campo, valor) => {
     onCambiarFiltro({
@@ -17,7 +17,7 @@ const AlertasFilters = ({ filtros, onCambiarFiltro }) => {
   }
 
   /**
-   * Limpia todos los filtros y los pone en su estado inicial (todos activos)
+   * Limpia todos los filtros y los pone en su estado inicial
    */
   const limpiarFiltros = () => {
     onCambiarFiltro({
@@ -26,6 +26,16 @@ const AlertasFilters = ({ filtros, onCambiarFiltro }) => {
       estado: 'todos',
       tipo: 'todos'
     })
+  }
+
+  /**
+   * Genera un PDF con las alertas actualmente visibles (ya filtradas)
+   * Si no hay alertas que mostrar, no hace nada
+   */
+  const handleExportarPDF = () => {
+    if (alertas && alertas.length > 0) {
+      generarInformePDF(alertas)
+    }
   }
 
   return (
@@ -76,6 +86,16 @@ const AlertasFilters = ({ filtros, onCambiarFiltro }) => {
       {/* Botón para limpiar todos los filtros */}
       <button className={styles.limpiar} onClick={limpiarFiltros}>
         Limpiar filtros
+      </button>
+
+      {/* Botón para exportar las alertas visibles a PDF */}
+      <button
+        className={styles.exportar}
+        onClick={handleExportarPDF}
+        disabled={!alertas || alertas.length === 0}
+        title="Exportar las alertas actuales a PDF"
+      >
+        Exportar PDF
       </button>
     </div>
   )
