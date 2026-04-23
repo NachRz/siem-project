@@ -4,10 +4,13 @@ Sistema de gestión de eventos de seguridad (SIEM) construido desde cero como pr
 
 ## Objetivo
 
-Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combinando un stack ELK con reglas de detección propias en Python y un dashboard interactivo construido en React con gestión de alertas y filtros avanzados.
+Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combinando un stack ELK con reglas de detección propias en Python, un dashboard interactivo construido en React con gestión de alertas y filtros avanzados, y una máquina atacante Kali Linux para la validación en vivo del sistema.
 
 ## Arquitectura
 
+    siem-attacker (Kali Linux)
+        └── Scripts de ataque → nmap, hydra, ssh fallidos
+                    ↓ (red interna siem-net)
     siem-target (192.168.57.3)
         ├── Filebeat → envía logs
         └── siem-ports-monitor.sh → snapshots de puertos cada 30s
@@ -15,7 +18,8 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
     siem-server (192.168.57.5)
         ├── Elasticsearch (puerto 9200)
         │   ├── Índice filebeat-*        (logs crudos del sistema)
-        │   └── Índice alertas-siem      (alertas generadas por el motor, con estado)
+        │   ├── Índice alertas-siem      (alertas generadas por el motor)
+        │   └── Índice motor-heartbeat   (heartbeat del motor Python)
         ├── Kibana (puerto 5601)
         ├── Logstash
         └── Motor de detección Python
@@ -34,6 +38,7 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
 | Dashboard propio | React + Vite + Axios |
 | Gráficas interactivas | Chart.js + react-chartjs-2 |
 | Infraestructura | VirtualBox + Ubuntu Server 22.04 |
+| Máquina atacante | Kali Linux + nmap + hydra + sshpass |
 
 ## Estructura del proyecto
 
@@ -41,8 +46,10 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
     ├── infrastructure/
     │   ├── filebeat/
     │   │   └── filebeat.yml                   # Configuración del agente de logs
-    │   └── ports-monitor/
-    │       └── siem-ports-monitor.sh          # Script de snapshots de puertos
+    │   ├── ports-monitor/
+    │   │   └── siem-ports-monitor.sh          # Script de snapshots de puertos
+    │   └── attack-demo/
+    │       └── attack-demo.sh                 # Script de demo de ataques desde Kali
     ├── detection/
     │   ├── rules/                             # Reglas de detección individuales
     │   │   ├── brute_force.py                 # Fuerza bruta SSH agrupada por IP
@@ -59,6 +66,7 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
     │   └── src/
     │       ├── components/
     │       │   ├── Header/                    # Cabecera con estado de conexión
+    │       │   ├── HealthStatus/              # Indicador de salud del sistema
     │       │   ├── StatsGrid/                 # Tarjetas de estadísticas en tiempo real
     │       │   ├── Timeline/                  # Gráfica temporal de actividad
     │       │   ├── AlertasFilters/            # Filtros de búsqueda, severidad y estado
@@ -107,6 +115,8 @@ El estado se puede cambiar desde el propio dashboard haciendo clic en el badge d
 - Cooldown por IP en reglas de ráfaga para evitar alertas repetidas
 - Cada regla es un módulo independiente fácil de extender
 - Comparación contra línea base para reglas de detección de cambios
+- Heartbeat periódico para monitorización de su propio estado
+- Timestamps en UTC consistentes con Elasticsearch
 
 ## Dashboard
 
@@ -114,12 +124,12 @@ Dashboard web construido en React que consume la API REST de Elasticsearch para 
 
 ### Secciones del dashboard
 
-- **Estadísticas en tiempo real** — contadores de los últimos 5 minutos (logins fallidos, exitosos, sudo)
+- **Panel de salud** — estado de Elasticsearch, Filebeat y motor Python con indicadores en vivo
+- **Estadísticas en tiempo real** — contadores de los últimos 5 minutos
 - **Gráfica temporal** — actividad por minuto durante la última hora, separada por tipo de evento
 - **Filtros avanzados** — búsqueda por texto, filtro por severidad y filtro por estado
 - **Alertas de seguridad** — alertas procesadas con gestión de estados
 - **Lista de eventos** — últimos eventos de seguridad del sistema con severidad visual
-- **Indicador de conexión** — muestra el estado de la conexión con Elasticsearch
 
 ### Filtros disponibles
 
@@ -140,6 +150,18 @@ Dashboard web construido en React que consume la API REST de Elasticsearch para 
 
 Script bash desplegado en `siem-target` que cada 30 segundos genera un snapshot de los puertos abiertos del sistema y lo escribe en `/var/log/siem-ports.log`. Filebeat recoge ese log y lo envía a Elasticsearch, donde la regla `puertos_nuevos.py` lo compara contra la línea base conocida para detectar aperturas sospechosas.
 
+## Demo de ataques con Kali Linux
+
+El proyecto incluye una máquina Kali Linux (`siem-attacker`) preparada para ejecutar ataques en vivo contra `siem-target`. El script `attack-demo.sh` lanza una secuencia de ataques encadenados para demostrar las capacidades de detección del SIEM:
+
+1. **Escaneo de puertos** con nmap
+2. **Fuerza bruta SSH** con hydra y diccionario de contraseñas comunes
+3. **Intentos directos de SSH** con sshpass y credenciales inválidas
+4. **Simulación de descarga de binario sospechoso** (post-explotación)
+5. **Apertura de puerto sospechoso** para exfiltración
+
+Cada ataque dispara alertas concretas en el dashboard, demostrando la efectividad de las reglas de detección en tiempo real.
+
 ## Cómo reproducir el entorno
 
 Ver `docs/setup.md` para instrucciones detalladas.
@@ -159,6 +181,12 @@ Ver `docs/setup.md` para instrucciones detalladas.
     cd dashboard
     npm run dev
 
+### Lanzar la demo de ataques
+
+    # Desde Kali Linux
+    cd ~/siem-attack
+    ./attack-demo.sh
+
 ## Progreso
 
 | Fase | Estado |
@@ -174,9 +202,8 @@ Ver `docs/setup.md` para instrucciones detalladas.
 | Monitorización de puertos | ✅ Completado |
 | Gestión de estado de alertas | ✅ Completado |
 | Filtros avanzados en el dashboard | ✅ Completado |
-| Indicador de salud del sistema | 🔄 En progreso |
-| Autenticación en el dashboard | ⏳ Pendiente |
-| Kali + script de ataque | ⏳ Pendiente |
+| Indicador de salud del sistema | ✅ Completado |
+| Kali + script de ataque | ✅ Completado |
 | Exportación de informes PDF | ⏳ Pendiente |
 | Migración Docker | ⏳ Pendiente |
 
