@@ -4,7 +4,7 @@ Sistema de gestión de eventos de seguridad (SIEM) construido desde cero como pr
 
 ## Objetivo
 
-Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combinando un stack ELK con reglas de detección propias en Python y un dashboard interactivo construido en React.
+Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combinando un stack ELK con reglas de detección propias en Python y un dashboard interactivo construido en React con gestión de alertas y filtros avanzados.
 
 ## Arquitectura
 
@@ -15,7 +15,7 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
     siem-server (192.168.57.5)
         ├── Elasticsearch (puerto 9200)
         │   ├── Índice filebeat-*        (logs crudos del sistema)
-        │   └── Índice alertas-siem      (alertas generadas por el motor)
+        │   └── Índice alertas-siem      (alertas generadas por el motor, con estado)
         ├── Kibana (puerto 5601)
         ├── Logstash
         └── Motor de detección Python
@@ -51,15 +51,18 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
     │   │   ├── horario_sospechoso.py          # Login fuera de horario
     │   │   ├── nuevo_usuario.py               # Nuevo usuario creado
     │   │   ├── archivos_criticos.py           # Modificación de ficheros sensibles
-    │   │   └── puertos_nuevos.py              # Puerto nuevo abierto en el sistema
-    │   └── engine.py                          # Motor principal que persiste alertas
+    │   │   ├── puertos_nuevos.py              # Puerto nuevo abierto
+    │   │   ├── comandos_sospechosos.py        # Patrones típicos de atacante
+    │   │   └── rafaga_sudo.py                 # Ráfaga de sudos (script automatizado)
+    │   └── engine.py                          # Motor que persiste alertas con estado
     ├── dashboard/                             # Frontend React con Vite
     │   └── src/
     │       ├── components/
     │       │   ├── Header/                    # Cabecera con estado de conexión
     │       │   ├── StatsGrid/                 # Tarjetas de estadísticas en tiempo real
     │       │   ├── Timeline/                  # Gráfica temporal de actividad
-    │       │   ├── AlertasList/               # Alertas generadas por el motor Python
+    │       │   ├── AlertasFilters/            # Filtros de búsqueda, severidad y estado
+    │       │   ├── AlertasList/               # Alertas con gestión de estado
     │       │   └── EventsList/                # Lista de eventos de seguridad
     │       ├── config/                        # Constantes del proyecto
     │       ├── services/                      # Capa de conexión con Elasticsearch
@@ -84,9 +87,21 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
 
 ## Sistema de alertas
 
-Las alertas generadas por el motor de detección Python se persisten automáticamente en un índice dedicado de Elasticsearch (`alertas-siem`). El motor aplica deduplicación de eventos y persiste estado entre reinicios para evitar alertas duplicadas.
+Las alertas generadas por el motor de detección Python se persisten automáticamente en un índice dedicado de Elasticsearch (`alertas-siem`) con un campo de estado gestionable desde el dashboard.
 
-Características del motor:
+### Estados de las alertas
+
+Cada alerta puede tener uno de estos estados:
+
+- **Nueva** — alerta recién generada sin revisar
+- **Investigando** — un analista está revisando la alerta
+- **Resuelta** — incidente gestionado y cerrado
+- **Falso positivo** — alerta que no corresponde a un incidente real
+
+El estado se puede cambiar desde el propio dashboard haciendo clic en el badge de la alerta.
+
+### Características del motor
+
 - Deduplicación por PID del proceso para contrarrestar duplicados del log
 - Persistencia de estado en disco entre reinicios
 - Cooldown por IP en reglas de ráfaga para evitar alertas repetidas
@@ -101,17 +116,25 @@ Dashboard web construido en React que consume la API REST de Elasticsearch para 
 
 - **Estadísticas en tiempo real** — contadores de los últimos 5 minutos (logins fallidos, exitosos, sudo)
 - **Gráfica temporal** — actividad por minuto durante la última hora, separada por tipo de evento
-- **Alertas de seguridad** — alertas procesadas por el motor de detección Python
+- **Filtros avanzados** — búsqueda por texto, filtro por severidad y filtro por estado
+- **Alertas de seguridad** — alertas procesadas con gestión de estados
 - **Lista de eventos** — últimos eventos de seguridad del sistema con severidad visual
 - **Indicador de conexión** — muestra el estado de la conexión con Elasticsearch
+
+### Filtros disponibles
+
+- **Búsqueda de texto** — filtra por cualquier palabra en el mensaje o tipo de alerta
+- **Severidad** — filtra por nivel: Alta, Media, Baja o todas
+- **Estado** — filtra por estado: Nueva, Investigando, Resuelta, Falso positivo o todos
 
 ### Arquitectura frontend
 
 - Componentes modulares con CSS Modules
 - Hooks personalizados para separar lógica de datos de presentación
 - Capa de servicios para centralizar las llamadas a Elasticsearch
+- Filtrado reactivo en cliente con `useMemo` para optimizar re-renders
+- Actualización optimista de la UI al cambiar estados de alertas
 - Utilidades de deduplicación en el cliente para eventos SSH duplicados
-- Procesamiento y agregación de datos en el frontend para flexibilidad
 
 ## Monitorización de puertos
 
@@ -143,15 +166,15 @@ Ver `docs/setup.md` para instrucciones detalladas.
 | Infraestructura VMs | ✅ Completado |
 | Stack ELK | ✅ Completado |
 | Filebeat | ✅ Completado |
-| Reglas de detección Python | ✅ Completado |
+| Reglas de detección Python (9 reglas) | ✅ Completado |
 | Persistencia de alertas en Elasticsearch | ✅ Completado |
 | Dashboard React | ✅ Completado |
 | Gráfica temporal con Chart.js | ✅ Completado |
 | Deduplicación y ajuste fino de reglas | ✅ Completado |
 | Monitorización de puertos | ✅ Completado |
-| Reglas adicionales de detección | 🔄 En progreso |
-| Estado de alertas y filtros | ⏳ Pendiente |
-| Indicador de salud del sistema | ⏳ Pendiente |
+| Gestión de estado de alertas | ✅ Completado |
+| Filtros avanzados en el dashboard | ✅ Completado |
+| Indicador de salud del sistema | 🔄 En progreso |
 | Autenticación en el dashboard | ⏳ Pendiente |
 | Kali + script de ataque | ⏳ Pendiente |
 | Exportación de informes PDF | ⏳ Pendiente |
