@@ -4,7 +4,7 @@ Sistema de gestión de eventos de seguridad (SIEM) construido desde cero como pr
 
 ## Objetivo
 
-Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combinando un stack ELK con reglas de detección propias en Python, un dashboard interactivo construido en React con gestión de alertas y filtros avanzados, y una máquina atacante Kali Linux para la validación en vivo del sistema.
+Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combinando un stack ELK con reglas de detección propias en Python, un dashboard interactivo construido en React con gestión de alertas y filtros avanzados, exportación de informes PDF y una máquina atacante Kali Linux para la validación en vivo del sistema.
 
 ## Arquitectura
 
@@ -25,6 +25,8 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
         └── Motor de detección Python
                     ↓
             Dashboard React (localhost:5173)
+                    ↓
+            Informes PDF descargables
 
 ## Stack tecnológico
 
@@ -37,6 +39,7 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
 | Detección de anomalías | Python 3 |
 | Dashboard propio | React + Vite + Axios |
 | Gráficas interactivas | Chart.js + react-chartjs-2 |
+| Exportación de informes | jsPDF + jspdf-autotable |
 | Infraestructura | VirtualBox + Ubuntu Server 22.04 |
 | Máquina atacante | Kali Linux + nmap + hydra + sshpass |
 
@@ -69,13 +72,16 @@ Detectar anomalías y ataques en tiempo real sobre una red virtualizada, combina
     │       │   ├── HealthStatus/              # Indicador de salud del sistema
     │       │   ├── StatsGrid/                 # Tarjetas de estadísticas en tiempo real
     │       │   ├── Timeline/                  # Gráfica temporal de actividad
-    │       │   ├── AlertasFilters/            # Filtros de búsqueda, severidad y estado
+    │       │   ├── AlertasFilters/            # Filtros + exportación PDF
     │       │   ├── AlertasList/               # Alertas con gestión de estado
     │       │   └── EventsList/                # Lista de eventos de seguridad
     │       ├── config/                        # Constantes del proyecto
     │       ├── services/                      # Capa de conexión con Elasticsearch
     │       ├── hooks/                         # Hooks personalizados de React
-    │       ├── utils/                         # Deduplicación y clasificación de eventos
+    │       ├── utils/
+    │       │   ├── severity.js                # Clasificación y stats de eventos
+    │       │   ├── timeline.js                # Procesamiento de timeline
+    │       │   └── pdfExport.js               # Generación de informes PDF
     │       └── styles/                        # Estilos globales
     └── docs/
         ├── architecture.md                    # Arquitectura detallada del entorno
@@ -130,6 +136,7 @@ Dashboard web construido en React que consume la API REST de Elasticsearch para 
 - **Filtros avanzados** — búsqueda por texto, filtro por severidad y filtro por estado
 - **Alertas de seguridad** — alertas procesadas con gestión de estados
 - **Lista de eventos** — últimos eventos de seguridad del sistema con severidad visual
+- **Exportación PDF** — genera informes profesionales con las alertas filtradas
 
 ### Filtros disponibles
 
@@ -145,6 +152,18 @@ Dashboard web construido en React que consume la API REST de Elasticsearch para 
 - Filtrado reactivo en cliente con `useMemo` para optimizar re-renders
 - Actualización optimista de la UI al cambiar estados de alertas
 - Utilidades de deduplicación en el cliente para eventos SSH duplicados
+- Generación de informes PDF directamente desde el navegador
+
+## Informes PDF
+
+El dashboard permite exportar un informe profesional en PDF con las alertas actualmente filtradas. El informe incluye:
+
+- Cabecera corporativa con fecha y hora de generación
+- Resumen ejecutivo con estadísticas por severidad y estado
+- Tabla detallada de alertas con código de color por severidad
+- Numeración automática de páginas
+
+Todo el proceso se genera en el navegador sin necesidad de backend adicional, usando jsPDF y jspdf-autotable.
 
 ## Monitorización de puertos
 
@@ -204,7 +223,7 @@ Ver `docs/setup.md` para instrucciones detalladas.
 | Filtros avanzados en el dashboard | ✅ Completado |
 | Indicador de salud del sistema | ✅ Completado |
 | Kali + script de ataque | ✅ Completado |
-| Exportación de informes PDF | ⏳ Pendiente |
+| Exportación de informes PDF | ✅ Completado |
 | Migración Docker | ⏳ Pendiente |
 
 ## Autor
