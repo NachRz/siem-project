@@ -1,8 +1,8 @@
-// Hook personalizado que gestiona la obtención de alertas desde Elasticsearch
-// Se actualiza automáticamente cada X segundos según la configuración global
+// Hook personalizado que gestiona la obtención y actualización de alertas
+// Las alertas antiguas sin campo 'estado' se tratan como 'nueva' por defecto
 
 import { useState, useEffect } from 'react'
-import { fetchAlertas } from '../services/elasticsearch'
+import { fetchAlertas, actualizarEstadoAlerta } from '../services/elasticsearch'
 import { REFRESH_INTERVAL } from '../config/constants'
 
 export const useAlertas = () => {
@@ -10,19 +10,27 @@ export const useAlertas = () => {
   const [alertas, setAlertas] = useState([])
   // Total de alertas existentes en Elasticsearch
   const [total, setTotal] = useState(0)
-  // Estado de carga inicial
   const [loading, setLoading] = useState(true)
-  // Posibles errores de conexión
   const [error, setError] = useState(null)
 
   /**
-   * Función que realiza la petición a Elasticsearch
-   * Se llama en el mount y en cada intervalo de refresco
+   * Carga las alertas desde Elasticsearch y normaliza el campo 'estado'
+   * Las alertas sin estado (creadas antes del sistema de gestión) se tratan como 'nueva'
    */
   const loadAlertas = async () => {
     try {
       const hits = await fetchAlertas()
-      setAlertas(hits.hits)
+
+      // Normalizamos las alertas añadiendo 'nueva' a las que no tienen estado
+      const alertasNormalizadas = hits.hits.map(alerta => ({
+        ...alerta,
+        _source: {
+          ...alerta._source,
+          estado: alerta._source.estado || 'nueva'
+        }
+      }))
+
+      setAlertas(alertasNormalizadas)
       setTotal(hits.total.value)
       setError(null)
     } catch (err) {
@@ -33,22 +41,41 @@ export const useAlertas = () => {
     }
   }
 
-  // Al montar el componente carga las alertas y arranca el refresco automático
+  /**
+   * Cambia el estado de una alerta en Elasticsearch y refresca la lista
+   * Se actualiza también localmente para que la UI responda inmediatamente
+   */
+  const cambiarEstado = async (alertaId, nuevoEstado) => {
+    try {
+      // Actualizamos optimistamente la UI sin esperar a Elasticsearch
+      setAlertas(alertas.map(alerta =>
+        alerta._id === alertaId
+          ? { ...alerta, _source: { ...alerta._source, estado: nuevoEstado } }
+          : alerta
+      ))
+
+      // Persistimos el cambio en Elasticsearch
+      await actualizarEstadoAlerta(alertaId, nuevoEstado)
+    } catch (err) {
+      console.error('Error actualizando estado:', err)
+      // Si falla, recargamos para restaurar el estado correcto desde el servidor
+      await loadAlertas()
+    }
+  }
+
+  // Carga inicial + refresco periódico automático
   useEffect(() => {
-    // Función interna que envuelve la carga inicial
     const init = async () => {
       await loadAlertas()
     }
     init()
 
-    // Intervalo que refresca las alertas periódicamente
     const interval = setInterval(() => {
       loadAlertas()
     }, REFRESH_INTERVAL)
 
-    // Limpieza del intervalo al desmontar para evitar memory leaks
     return () => clearInterval(interval)
   }, [])
 
-  return { alertas, total, loading, error, refresh: loadAlertas }
+  return { alertas, total, loading, error, refresh: loadAlertas, cambiarEstado }
 }
