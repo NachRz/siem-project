@@ -1,5 +1,6 @@
 # Motor principal de detección del SIEM
 # Ejecuta las reglas de forma periódica y guarda las alertas en Elasticsearch
+# Además escribe un heartbeat cada ciclo para que el dashboard sepa que está vivo
 
 from elasticsearch import Elasticsearch
 from datetime import datetime
@@ -24,6 +25,9 @@ es = Elasticsearch("http://192.168.57.5:9200")
 # Índice donde se guardarán las alertas generadas por el motor
 INDICE_ALERTAS = "alertas-siem"
 
+# Índice del heartbeat para que el dashboard sepa si el motor está vivo
+INDICE_HEARTBEAT = "motor-heartbeat"
+
 
 def log_alerta(tipo, mensaje, severidad):
     """
@@ -37,22 +41,35 @@ def log_alerta(tipo, mensaje, severidad):
     # Salida por consola
     print(f"[{timestamp_str}] [{severidad}] {tipo}: {mensaje}")
 
-    # Documento que se indexa en Elasticsearch
-# Documento que se indexa en Elasticsearch
+    # Documento que se indexa en Elasticsearch (usando UTC)
     alerta = {
-        "@timestamp": timestamp.isoformat(),
+        "@timestamp": datetime.utcnow().isoformat() + "Z",
         "tipo": tipo,
         "mensaje": mensaje,
         "severidad": severidad,
         "origen": "motor-deteccion-python",
-        "estado": "nueva"  # Estado inicial de todas las alertas nuevas
+        "estado": "nueva"
     }
 
-    # Indexamos la alerta en Elasticsearch
     try:
         es.index(index=INDICE_ALERTAS, document=alerta)
     except Exception as e:
         print(f"  [ERROR] No se pudo guardar la alerta en Elasticsearch: {e}")
+
+
+def escribir_heartbeat():
+    """
+    Escribe un documento 'estoy vivo' en el índice de heartbeat
+    El dashboard usa este índice para saber si el motor está activo
+    Usa UTC para que sea consistente con las consultas de Elasticsearch
+    """
+    try:
+        es.index(index=INDICE_HEARTBEAT, document={
+            "@timestamp": datetime.utcnow().isoformat() + "Z",
+            "estado": "vivo"
+        })
+    except Exception as e:
+        print(f"  [ERROR] No se pudo escribir heartbeat: {e}")
 
 
 if __name__ == "__main__":
@@ -71,4 +88,8 @@ if __name__ == "__main__":
         puertos_nuevos.detectar(es, log_alerta)
         comandos_sospechosos.detectar(es, log_alerta)
         rafaga_sudo.detectar(es, log_alerta)
+
+        # Heartbeat para el panel de salud del dashboard
+        escribir_heartbeat()
+
         time.sleep(30)
