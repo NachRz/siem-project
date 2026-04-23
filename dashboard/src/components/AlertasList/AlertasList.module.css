@@ -1,11 +1,9 @@
 /* Contenedor principal de la sección de alertas */
 .container {
-  background: #1e293b;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  background: transparent;
+  padding: 0;
+  margin-bottom: 0;
 }
-
 /* Título de la sección con contador de alertas totales */
 .title {
   display: flex;
@@ -30,7 +28,7 @@
 
 /* Contenedor scrolleable con las alertas */
 .list {
-  max-height: 400px;
+  max-height: 500px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -44,6 +42,7 @@
   border-radius: 8px;
   border-left: 4px solid #64748b;
   transition: transform 0.15s ease;
+  position: relative;
 }
 
 .alerta:hover {
@@ -55,12 +54,20 @@
 .alerta.media { border-left-color: #f59e0b; }
 .alerta.baja { border-left-color: #10b981; }
 
-/* Cabecera de la alerta con tipo y badge de severidad */
+/* Cabecera de la alerta con tipo a la izquierda y badges a la derecha */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+
+/* Grupo de badges (severidad + estado) a la derecha de la cabecera */
+.badges {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 /* Nombre del tipo de alerta en mayúsculas y destacado */
@@ -72,7 +79,7 @@
   letter-spacing: 0.05em;
 }
 
-/* Badge de severidad a la derecha */
+/* Badge de severidad (ALTA/MEDIA/BAJA) */
 .badge {
   font-size: 0.7rem;
   padding: 0.2rem 0.6rem;
@@ -85,6 +92,28 @@
 .badge_alta { background: #7f1d1d; color: #fecaca; }
 .badge_media { background: #78350f; color: #fed7aa; }
 .badge_baja { background: #064e3b; color: #a7f3d0; }
+
+/* Badge de estado clickable que abre el menú de cambio */
+.estado {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.estado:hover {
+  opacity: 0.8;
+}
+
+/* Estilos de cada estado */
+.estado_nueva { background: #1e3a8a; color: #bfdbfe; }
+.estado_investigando { background: #78350f; color: #fed7aa; }
+.estado_resuelta { background: #064e3b; color: #a7f3d0; }
+.estado_falso { background: #374151; color: #d1d5db; }
 
 /* Mensaje descriptivo de la alerta, con salto de línea natural */
 .mensaje {
@@ -102,6 +131,37 @@
   color: #64748b;
   font-size: 0.8rem;
   font-family: 'Courier New', monospace;
+}
+
+/* Menú desplegable con opciones de cambio de estado */
+.menuEstados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #334155;
+}
+
+/* Cada opción del menú es un botón con el color del estado destino */
+.opcionEstado {
+  font-size: 0.75rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity 0.15s ease;
+}
+
+.opcionEstado:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+/* Opción deshabilitada = el estado que ya tiene la alerta */
+.opcionEstado:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* Estados vacíos y de error */

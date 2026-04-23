@@ -1,10 +1,11 @@
 // Componente que muestra la lista de alertas generadas por el motor de detección
-// A diferencia de EventsList, aquí solo aparecen las alertas procesadas, no los logs crudos
+// Las alertas incluyen estado (nueva, investigando, resuelta, falso positivo)
+// que puede modificarse desde cada alerta individualmente
 
 import AlertaItem from './AlertaItem'
 import styles from './AlertasList.module.css'
 
-const AlertasList = ({ alertas, total, loading, error }) => {
+const AlertasList = ({ alertas, total, loading, error, onCambiarEstado }) => {
   // Estado de carga inicial
   if (loading) {
     return (
@@ -15,7 +16,6 @@ const AlertasList = ({ alertas, total, loading, error }) => {
     )
   }
 
-  // Estado de error cuando falla la conexión con Elasticsearch
   if (error) {
     return (
       <div className={styles.container}>
@@ -36,7 +36,11 @@ const AlertasList = ({ alertas, total, loading, error }) => {
           <p className={styles.empty}>No hay alertas generadas todavía</p>
         ) : (
           alertas.map((alerta) => (
-            <AlertaItem key={alerta._id} alerta={alerta} />
+            <AlertaItem
+              key={alerta._id}
+              alerta={alerta}
+              onCambiarEstado={onCambiarEstado}
+            />
           ))
         )}
       </div>
