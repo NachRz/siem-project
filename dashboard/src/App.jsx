@@ -1,9 +1,11 @@
 // Componente raíz del dashboard SIEM
-// Orquesta los seis bloques principales:
-// cabecera, estadísticas, gráfica temporal, filtros, alertas generadas y lista de eventos crudos
+// Orquesta los bloques principales:
+// cabecera, salud del sistema, estadísticas, gráfica temporal,
+// filtros + alertas generadas y lista de eventos crudos
 
 import { useState, useMemo } from 'react'
 import Header from './components/Header/Header'
+import HealthStatus from './components/HealthStatus/HealthStatus'
 import StatsGrid from './components/StatsGrid/StatsGrid'
 import Timeline from './components/Timeline/Timeline'
 import AlertasFilters from './components/AlertasFilters/AlertasFilters'
@@ -12,6 +14,7 @@ import EventsList from './components/EventsList/EventsList'
 import { useEvents } from './hooks/useEvents'
 import { useAlertas } from './hooks/useAlertas'
 import { useTimeline } from './hooks/useTimeline'
+import { useHealth } from './hooks/useHealth'
 import './styles/global.css'
 
 function App() {
@@ -19,18 +22,20 @@ function App() {
   const { events, stats, loading: loadingEvents, error: errorEvents } = useEvents()
 
   // Hook que gestiona las alertas procesadas por el motor de detección Python
-const {
+  const {
     alertas,
     loading: loadingAlertas,
     error: errorAlertas,
     cambiarEstado
   } = useAlertas()
-  
+
   // Hook que gestiona los puntos procesados por minuto para la gráfica temporal
   const { puntos, loading: loadingTimeline, error: errorTimeline } = useTimeline()
 
+  // Hook que monitoriza la salud de los componentes del SIEM
+  const health = useHealth()
+
   // Estado de los filtros aplicados sobre las alertas
-  // Por defecto todos los valores son "sin filtrar"
   const [filtros, setFiltros] = useState({
     busqueda: '',
     severidad: 'todas',
@@ -54,12 +59,12 @@ const {
         if (!enMensaje && !enTipo) return false
       }
 
-      // Filtro por severidad (alta/media/baja o todas)
+      // Filtro por severidad
       if (filtros.severidad !== 'todas' && severidad !== filtros.severidad) {
         return false
       }
 
-      // Filtro por estado (nueva/investigando/resuelta/falso_positivo o todos)
+      // Filtro por estado
       if (filtros.estado !== 'todos' && estado !== filtros.estado) {
         return false
       }
@@ -72,6 +77,9 @@ const {
     <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem' }}>
       {/* Cabecera con logo y estado de conexión */}
       <Header />
+
+      {/* Panel de salud con indicadores de los componentes del SIEM */}
+      <HealthStatus health={health} />
 
       {/* Grid de 4 tarjetas con contadores globales de eventos */}
       <StatsGrid stats={stats} />
