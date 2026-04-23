@@ -38,12 +38,14 @@ def log_alerta(tipo, mensaje, severidad):
     print(f"[{timestamp_str}] [{severidad}] {tipo}: {mensaje}")
 
     # Documento que se indexa en Elasticsearch
+# Documento que se indexa en Elasticsearch
     alerta = {
         "@timestamp": timestamp.isoformat(),
         "tipo": tipo,
         "mensaje": mensaje,
         "severidad": severidad,
-        "origen": "motor-deteccion-python"
+        "origen": "motor-deteccion-python",
+        "estado": "nueva"  # Estado inicial de todas las alertas nuevas
     }
 
     # Indexamos la alerta en Elasticsearch
