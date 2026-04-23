@@ -1,0 +1,93 @@
+/* Contenedor principal del panel de salud del sistema */
+.container {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Título del panel */
+.title {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+/* Rejilla con los tres componentes en fila */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+/* Cada componente con su indicador luminoso y su información */
+.componente {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background: #0f172a;
+  border-radius: 8px;
+}
+
+/* Punto luminoso indicador de estado */
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Estado activo (verde con glow) */
+.ok {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+}
+
+/* Estado caído (rojo con glow) */
+.ko {
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+}
+
+/* Estado comprobando (gris con animación de pulso) */
+.checking {
+  background: #64748b;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* Información textual del componente */
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+/* Nombre del componente */
+.nombre {
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Estado del componente (Activo/Inactivo/Comprobando) */
+.estado {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+/* Responsive: apilar en una columna en pantallas pequeñas */
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
