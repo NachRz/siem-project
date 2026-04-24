@@ -1,0 +1,108 @@
+# Docker Compose del SIEM Casero
+# Orquesta los componentes del stack: Elasticsearch, Kibana, motor Python y dashboard
+# Los servicios se comunican por nombre en la red interna "siem-network"
+
+services:
+  # ═══════════════════════════════════════════════════════════
+  # Elasticsearch — almacenamiento de logs y alertas
+  # ═══════════════════════════════════════════════════════════
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.0
+    container_name: siem-elasticsearch
+    environment:
+      # Configuración para desarrollo: single node y seguridad desactivada
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      # Habilitar CORS para que el dashboard pueda consultar desde el navegador
+      - http.cors.enabled=true
+      - http.cors.allow-origin="*"
+      - http.cors.allow-headers=X-Requested-With,Content-Type,Content-Length,Authorization
+      # Límites de memoria para la JVM
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ports:
+      # Exponemos el puerto para que Filebeat (que está en siem-target) pueda enviar logs
+      - "9200:9200"
+    volumes:
+      # Persistencia de datos entre reinicios
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - siem-network
+    healthcheck:
+      # Comprueba que Elasticsearch responde antes de marcar el contenedor como healthy
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ═══════════════════════════════════════════════════════════
+  # Kibana — interfaz de exploración de Elasticsearch
+  # ═══════════════════════════════════════════════════════════
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.19.0
+    container_name: siem-kibana
+    environment:
+      # Conexión a Elasticsearch por el nombre del servicio
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_HOST=0.0.0.0
+      # Desactivamos módulos empresariales que no usamos en el SIEM
+      # Esto limpia los errores de la consola y simplifica la interfaz
+      - XPACK_FLEET_ENABLED=false
+      - XPACK_SECURITYSOLUTION_ENABLED=false
+      - XPACK_ENTERPRISESEARCH_ENABLED=false
+      - XPACK_ELASTICASSISTANT_ENABLED=false
+      - XPACK_OBSERVABILITY_ENABLED=false
+      - XPACK_STREAMS_ENABLED=false
+      - XPACK_SECURITY_SHOWINSECURECLUSTERWARNING=false
+      # Elimina la telemetría que intenta buscar perfiles de usuario
+      - TELEMETRY_ENABLED=false
+      - TELEMETRY_OPTIN=false
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - siem-network
+  # ═══════════════════════════════════════════════════════════
+  # Motor de detección Python — aplica las reglas y persiste alertas
+  # ═══════════════════════════════════════════════════════════
+  detection-engine:
+    build:
+      context: ..
+      dockerfile: docker/detection-engine/Dockerfile
+    container_name: siem-detection-engine
+    environment:
+      # Dentro de la red Docker Elasticsearch es accesible por su nombre
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - siem-network
+    restart: unless-stopped
+
+  # ═══════════════════════════════════════════════════════════
+  # Dashboard React — frontend de visualización
+  # ═══════════════════════════════════════════════════════════
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/dashboard/Dockerfile
+    container_name: siem-dashboard
+    ports:
+      - "5173:80"
+    depends_on:
+      - elasticsearch
+    networks:
+      - siem-network
+
+# Red interna para comunicación entre contenedores
+networks:
+  siem-network:
+    driver: bridge
+
+# Volumen persistente para los datos de Elasticsearch
+volumes:
+  elasticsearch-data:
+    driver: local
