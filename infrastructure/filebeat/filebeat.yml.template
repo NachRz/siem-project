@@ -1,0 +1,41 @@
+# Filebeat configuration para el SIEM
+# Este fichero es una PLANTILLA. El script setup.sh sustituye {{SIEM_HOST_IP}}
+# por la IP real de la máquina host y genera filebeat.yml.generated
+# que hay que copiar a /etc/filebeat/filebeat.yml en siem-target
+
+# ============================== Filebeat inputs ==============================
+filebeat.inputs:
+
+  # Logs estándar del sistema (auth.log, syslog, etc.)
+  - type: filestream
+    id: system-logs
+    enabled: true
+    paths:
+      - /var/log/*.log
+
+  # Log específico del monitor de puertos abiertos
+  - type: filestream
+    id: siem-ports-monitor
+    enabled: true
+    paths:
+      - /var/log/siem-ports.log
+
+# ============================ Módulos de Filebeat ============================
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+# ========================== Configuración del índice ==========================
+setup.template.settings:
+  index.number_of_shards: 1
+
+# ================================= Outputs ===================================
+# Elasticsearch corre en la máquina host en el puerto 9200
+output.elasticsearch:
+  hosts: ["{{SIEM_HOST_IP}}:9200"]
+  preset: balanced
+
+# ================================ Procesadores ================================
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
