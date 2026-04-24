@@ -20,7 +20,8 @@ from rules import (
 )
 
 # Cliente de Elasticsearch apuntando al servidor SIEM
-es = Elasticsearch("http://192.168.57.5:9200")
+import os
+es = Elasticsearch(os.environ.get("ELASTICSEARCH_URL", "http://192.168.57.5:9200"))
 
 # Índice donde se guardarán las alertas generadas por el motor
 INDICE_ALERTAS = "alertas-siem"
